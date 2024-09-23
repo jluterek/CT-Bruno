@@ -1,0 +1,46 @@
+meta {
+  name: Get suggestion keywords
+  type: http
+  seq: 320
+}
+
+get {
+  url: {{apiUrl}}/{{project-key}}/product-projections/suggest
+  body: none
+  auth: inherit
+}
+
+
+query {
+  ~/searchKeywords.[a-z]{2}(-[A-Z]{2})?/: 
+  ~limit: 
+  ~fuzzy: 
+  ~staged: 
+}
+
+script:post-response {
+  var data = res.body;
+  if(res.status == 200 || res.status == 201) {
+      if(data.results && data.results[0] && data.results[0].id && data.results[0].version){
+          bru.setEnvVar("suggest-id", data.results[0].id); 
+          bru.setEnvVar("suggest-version", data.results[0].version);
+      }
+      if(data.results && data.results[0] && data.results[0].key){
+          bru.setEnvVar("suggest-key", data.results[0].key); 
+      }
+      if(data.version){
+          bru.setEnvVar("suggest-version", data.version);
+      }
+      if(data.id){
+          bru.setEnvVar("suggest-id", data.id); 
+      }
+      if(data.key){
+          bru.setEnvVar("suggest-key", data.key);
+      }
+
+  }
+}
+
+assert {
+  res.status: in [200, 201]
+}
